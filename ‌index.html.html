@@ -1,0 +1,2250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a1628">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>KUMC Facilities VR Training — Room 1C3</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg-deep: #050a14;
+    --bg: #0a1628;
+    --panel: rgba(12, 22, 40, 0.92);
+    --panel-solid: #0c1628;
+    --panel-border: rgba(96, 165, 250, 0.25);
+    --grid-line: rgba(96, 165, 250, 0.08);
+    --accent: #3b82f6;
+    --accent-bright: #60a5fa;
+    --accent-glow: #93c5fd;
+    --warn: #fbbf24;
+    --warn-bright: #fcd34d;
+    --danger: #ef4444;
+    --danger-glow: #fca5a5;
+    --success: #10b981;
+    --success-glow: #6ee7b7;
+    --text: #e2e8f0;
+    --text-dim: #94a3b8;
+    --text-dimmer: #64748b;
+    --kumc-blue: #0051a2;
+    --kumc-gold: #ffc72c;
+    --mono: 'JetBrains Mono', monospace;
+    --display: 'Space Grotesk', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: var(--display);
+    background: var(--bg-deep);
+    color: var(--text);
+    user-select: none;
+    -webkit-user-select: none;
+    overscroll-behavior: none;
+  }
+
+  /* ============ CANVAS CONTAINER ============ */
+  #canvas-container {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, #0f1f3a 0%, #050a14 70%);
+  }
+  canvas { display: block; width: 100%; height: 100%; outline: none; }
+
+  /* ============ HUD ============ */
+  .hud-top {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    pointer-events: none;
+    z-index: 10;
+    background: linear-gradient(to bottom, rgba(5,10,20,0.85) 0%, rgba(5,10,20,0) 100%);
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    pointer-events: auto;
+  }
+  .brand-mark {
+    width: 44px; height: 44px;
+    border: 2px solid var(--kumc-gold);
+    background: var(--kumc-blue);
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    color: var(--kumc-gold);
+    transform: rotate(-3deg);
+    box-shadow: 0 0 20px rgba(255, 199, 44, 0.25);
+  }
+  .brand-text {
+    font-family: var(--mono);
+    font-size: 10px;
+    line-height: 1.3;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .brand-text strong { color: var(--accent-bright); }
+  .brand-text .sub { color: var(--text-dim); font-size: 9px; }
+
+  .room-badge {
+    pointer-events: auto;
+    padding: 8px 16px;
+    border: 1px solid var(--panel-border);
+    background: var(--panel);
+    backdrop-filter: blur(12px);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .room-badge .dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    background: var(--success);
+    border-radius: 50%;
+    margin-right: 8px;
+    box-shadow: 0 0 8px var(--success-glow);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  /* ============ BOTTOM CONTROL BAR ============ */
+  .hud-bottom {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    pointer-events: none;
+    z-index: 10;
+    background: linear-gradient(to top, rgba(5,10,20,0.85) 0%, rgba(5,10,20,0) 100%);
+    flex-wrap: wrap;
+  }
+  .ctrl-btn {
+    pointer-events: auto;
+    padding: 10px 18px;
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    backdrop-filter: blur(12px);
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ctrl-btn:hover {
+    background: rgba(59, 130, 246, 0.15);
+    border-color: var(--accent-bright);
+    color: var(--accent-bright);
+    transform: translateY(-1px);
+  }
+  .ctrl-btn.primary {
+    background: var(--accent);
+    border-color: var(--accent-bright);
+    color: white;
+  }
+  .ctrl-btn.primary:hover {
+    background: var(--accent-bright);
+    box-shadow: 0 0 16px rgba(96, 165, 250, 0.4);
+  }
+  .ctrl-btn.vr {
+    background: linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%);
+    border-color: #a78bfa;
+  }
+  .ctrl-btn.warn {
+    border-color: var(--warn);
+    color: var(--warn-bright);
+  }
+  .ctrl-btn.warn:hover {
+    background: rgba(251, 191, 36, 0.15);
+  }
+
+  /* ============ LEGEND ============ */
+  .legend {
+    position: fixed;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--panel);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--panel-border);
+    padding: 14px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    z-index: 5;
+    max-width: 200px;
+  }
+  .legend h3 {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--accent-bright);
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--panel-border);
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 6px 0;
+    color: var(--text-dim);
+  }
+  .legend-swatch {
+    width: 18px; height: 3px;
+    flex-shrink: 0;
+  }
+
+  /* ============ EQUIPMENT INSPECTOR PANEL ============ */
+  .inspector {
+    position: fixed;
+    right: 0; top: 0; bottom: 0;
+    width: min(480px, 100vw);
+    background: var(--panel-solid);
+    border-left: 1px solid var(--panel-border);
+    z-index: 100;
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-shadow: -20px 0 60px rgba(0,0,0,0.5);
+  }
+  .inspector.open { transform: translateX(0); }
+
+  .inspector-header {
+    position: sticky;
+    top: 0;
+    background: var(--panel-solid);
+    border-bottom: 1px solid var(--panel-border);
+    padding: 20px 24px 16px;
+    z-index: 5;
+  }
+  .insp-tag-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .insp-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--accent-bright);
+    text-transform: uppercase;
+  }
+  .insp-close {
+    background: transparent;
+    border: 1px solid var(--panel-border);
+    color: var(--text-dim);
+    width: 32px; height: 32px;
+    cursor: pointer;
+    font-size: 18px;
+    display: grid;
+    place-items: center;
+    transition: all 0.2s;
+  }
+  .insp-close:hover {
+    border-color: var(--danger);
+    color: var(--danger);
+  }
+  .insp-title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    line-height: 1.15;
+  }
+  .insp-subtitle {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  .status-strip {
+    display: flex;
+    gap: 1px;
+    margin-top: 14px;
+    background: var(--panel-border);
+    padding: 1px;
+  }
+  .status-cell {
+    flex: 1;
+    padding: 8px 10px;
+    background: var(--bg);
+    text-align: center;
+  }
+  .status-label {
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 1.5px;
+    color: var(--text-dimmer);
+    margin-bottom: 2px;
+  }
+  .status-value {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .status-value.ok { color: var(--success-glow); }
+  .status-value.warn { color: var(--warn-bright); }
+  .status-value.err { color: var(--danger-glow); }
+
+  /* ============ TABS ============ */
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid var(--panel-border);
+    background: var(--panel-solid);
+    position: sticky;
+    top: 140px;
+    z-index: 4;
+  }
+  .tab {
+    flex: 1;
+    padding: 14px 8px;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    background: transparent;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active {
+    color: var(--accent-bright);
+    border-bottom-color: var(--accent-bright);
+    background: rgba(59, 130, 246, 0.05);
+  }
+
+  .tab-content {
+    padding: 24px;
+    display: none;
+  }
+  .tab-content.active { display: block; animation: fadeIn 0.3s; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ============ OVERVIEW TAB ============ */
+  .spec-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--panel-border);
+    margin-bottom: 20px;
+  }
+  .spec-item {
+    background: var(--bg);
+    padding: 12px;
+  }
+  .spec-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    color: var(--text-dimmer);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .spec-value {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+  }
+  .desc-block {
+    color: var(--text-dim);
+    line-height: 1.6;
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+  .components-list {
+    margin-top: 20px;
+  }
+  .section-heading {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--accent-bright);
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--panel-border);
+    text-transform: uppercase;
+  }
+  .component-item {
+    padding: 10px 12px;
+    background: rgba(59, 130, 246, 0.05);
+    border-left: 2px solid var(--accent);
+    margin-bottom: 6px;
+    font-size: 12px;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .component-item:hover {
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--text);
+    border-left-color: var(--accent-bright);
+  }
+  .component-item strong {
+    display: block;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 11px;
+    margin-bottom: 2px;
+  }
+
+  /* ============ PM PROCEDURE ============ */
+  .procedure-step {
+    display: flex;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(96, 165, 250, 0.1);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .procedure-step:hover {
+    padding-left: 6px;
+  }
+  .procedure-step:last-child { border-bottom: none; }
+  .step-num {
+    font-family: var(--mono);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent-bright);
+    flex-shrink: 0;
+    width: 32px;
+    text-align: right;
+    line-height: 1;
+  }
+  .step-body {
+    flex: 1;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-dim);
+  }
+  .step-body strong {
+    color: var(--text);
+    display: block;
+    margin-bottom: 4px;
+    font-size: 14px;
+  }
+  .step-check {
+    width: 20px; height: 20px;
+    border: 1.5px solid var(--text-dimmer);
+    flex-shrink: 0;
+    margin-top: 2px;
+    display: grid;
+    place-items: center;
+    transition: all 0.2s;
+  }
+  .procedure-step.done .step-check {
+    background: var(--success);
+    border-color: var(--success);
+  }
+  .procedure-step.done .step-check::after {
+    content: '✓';
+    color: white;
+    font-weight: 700;
+    font-size: 12px;
+  }
+  .procedure-step.done .step-body {
+    opacity: 0.55;
+    text-decoration: line-through;
+  }
+
+  .freq-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 18px;
+  }
+  .freq-tab {
+    padding: 6px 12px;
+    background: transparent;
+    border: 1px solid var(--panel-border);
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  .freq-tab.active {
+    background: var(--accent);
+    border-color: var(--accent-bright);
+    color: white;
+  }
+
+  /* ============ LOTO ============ */
+  .loto-warning {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(251, 191, 36, 0.08) 100%);
+    border: 1px solid var(--danger);
+    border-left-width: 4px;
+    padding: 14px;
+    margin-bottom: 20px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .loto-warning strong {
+    color: var(--danger-glow);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .loto-step {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    gap: 14px;
+    padding: 12px;
+    background: rgba(251, 191, 36, 0.04);
+    border-left: 3px solid var(--warn);
+    margin-bottom: 8px;
+  }
+  .loto-num {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--warn-bright);
+    line-height: 1;
+  }
+  .loto-body strong {
+    display: block;
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+  .loto-body p {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+  .loto-body code {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    background: rgba(96, 165, 250, 0.12);
+    padding: 2px 6px;
+    color: var(--accent-glow);
+    margin-top: 4px;
+  }
+
+  /* ============ TROUBLESHOOTING ============ */
+  .scenario-picker {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .scenario-card {
+    padding: 14px;
+    background: rgba(59, 130, 246, 0.06);
+    border: 1px solid var(--panel-border);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    color: var(--text);
+    font-family: var(--display);
+  }
+  .scenario-card:hover {
+    border-color: var(--accent-bright);
+    background: rgba(59, 130, 246, 0.12);
+    transform: translateX(4px);
+  }
+  .scenario-diff {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    padding: 2px 8px;
+    margin-bottom: 8px;
+  }
+  .scenario-diff.easy { background: rgba(16, 185, 129, 0.2); color: var(--success-glow); }
+  .scenario-diff.med { background: rgba(251, 191, 36, 0.2); color: var(--warn-bright); }
+  .scenario-diff.hard { background: rgba(239, 68, 68, 0.2); color: var(--danger-glow); }
+  .scenario-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .scenario-desc {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.4;
+  }
+
+  /* Scenario runner */
+  .ts-runner {
+    display: none;
+  }
+  .ts-runner.active { display: block; }
+  .ts-header {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(251, 191, 36, 0.08));
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    padding: 14px;
+    margin-bottom: 18px;
+  }
+  .ts-alarm {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--danger-glow);
+    margin-bottom: 6px;
+  }
+  .ts-scenario-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .ts-scenario-brief {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  .ts-score-bar {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: var(--bg);
+    border: 1px solid var(--panel-border);
+    margin-bottom: 18px;
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+  .ts-score-bar .lbl { color: var(--text-dimmer); letter-spacing: 1px; }
+  .ts-score-bar .val { color: var(--accent-bright); font-weight: 700; }
+
+  .ts-prompt {
+    font-size: 14px;
+    margin-bottom: 16px;
+    line-height: 1.6;
+  }
+  .ts-prompt strong { color: var(--accent-bright); }
+
+  .ts-choice {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 14px 16px;
+    background: rgba(59, 130, 246, 0.06);
+    border: 1px solid var(--panel-border);
+    color: var(--text);
+    font-family: var(--display);
+    font-size: 13px;
+    cursor: pointer;
+    margin-bottom: 8px;
+    transition: all 0.2s;
+    line-height: 1.4;
+  }
+  .ts-choice:hover {
+    background: rgba(59, 130, 246, 0.15);
+    border-color: var(--accent-bright);
+    transform: translateX(6px);
+  }
+
+  .ts-feedback {
+    padding: 14px;
+    margin-top: 14px;
+    border-left: 3px solid;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .ts-feedback.good {
+    border-left-color: var(--success);
+    background: rgba(16, 185, 129, 0.08);
+  }
+  .ts-feedback.bad {
+    border-left-color: var(--danger);
+    background: rgba(239, 68, 68, 0.08);
+  }
+  .ts-feedback.teaching {
+    border-left-color: var(--warn);
+    background: rgba(251, 191, 36, 0.08);
+  }
+  .ts-feedback strong {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+  .ts-feedback.good strong { color: var(--success-glow); }
+  .ts-feedback.bad strong { color: var(--danger-glow); }
+  .ts-feedback.teaching strong { color: var(--warn-bright); }
+
+  .ts-complete {
+    text-align: center;
+    padding: 30px 20px;
+  }
+  .ts-complete-score {
+    font-family: var(--mono);
+    font-size: 48px;
+    font-weight: 700;
+    margin: 16px 0;
+  }
+  .ts-complete-score.pass { color: var(--success-glow); }
+  .ts-complete-score.fail { color: var(--danger-glow); }
+
+  /* ============ TOOLTIP ============ */
+  #tooltip {
+    position: fixed;
+    pointer-events: none;
+    background: var(--panel-solid);
+    border: 1px solid var(--accent-bright);
+    padding: 8px 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--accent-glow);
+    z-index: 200;
+    opacity: 0;
+    transform: translate(-50%, -150%);
+    transition: opacity 0.15s;
+    white-space: nowrap;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
+  #tooltip::after {
+    content: '';
+    position: absolute;
+    bottom: -5px; left: 50%;
+    width: 8px; height: 8px;
+    background: var(--panel-solid);
+    border-right: 1px solid var(--accent-bright);
+    border-bottom: 1px solid var(--accent-bright);
+    transform: translateX(-50%) rotate(45deg);
+  }
+
+  /* ============ LOADING ============ */
+  #loader {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-deep);
+    display: grid;
+    place-items: center;
+    z-index: 1000;
+    transition: opacity 0.6s;
+  }
+  #loader.fade { opacity: 0; pointer-events: none; }
+  .loader-inner { text-align: center; }
+  .loader-mark {
+    width: 80px; height: 80px;
+    border: 3px solid var(--kumc-gold);
+    background: var(--kumc-blue);
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    font-size: 24px;
+    color: var(--kumc-gold);
+    margin: 0 auto 24px;
+    animation: spin 2s linear infinite;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  .loader-text {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  /* ============ INSTRUCTIONS CARD (FIRST LOAD) ============ */
+  .instructions {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 10, 20, 0.92);
+    backdrop-filter: blur(8px);
+    z-index: 500;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+  }
+  .instructions.hidden { display: none; }
+  .inst-card {
+    max-width: 560px;
+    background: var(--panel-solid);
+    border: 1px solid var(--panel-border);
+    padding: 36px;
+    position: relative;
+  }
+  .inst-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 60px; height: 4px;
+    background: var(--kumc-gold);
+  }
+  .inst-eyebrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    color: var(--accent-bright);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .inst-title {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 16px;
+    line-height: 1.1;
+  }
+  .inst-body {
+    color: var(--text-dim);
+    line-height: 1.6;
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+  .inst-list {
+    display: grid;
+    gap: 10px;
+    margin: 20px 0;
+  }
+  .inst-item {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    gap: 12px;
+    align-items: start;
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+  .inst-key {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    padding: 4px 6px;
+    background: rgba(96, 165, 250, 0.12);
+    color: var(--accent-glow);
+    text-align: center;
+  }
+  .inst-btn {
+    width: 100%;
+    padding: 14px;
+    margin-top: 10px;
+    background: var(--accent);
+    border: none;
+    color: white;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+  .inst-btn:hover {
+    background: var(--accent-bright);
+    box-shadow: 0 0 24px rgba(96, 165, 250, 0.4);
+  }
+
+  /* ============ MOBILE ============ */
+  @media (max-width: 720px) {
+    .legend { display: none; }
+    .hud-top { padding: 10px 12px; }
+    .brand-mark { width: 36px; height: 36px; font-size: 12px; }
+    .room-badge { font-size: 9px; padding: 6px 10px; }
+    .ctrl-btn { padding: 8px 12px; font-size: 10px; }
+    .inspector { width: 100vw; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ LOADING ============ -->
+<div id="loader">
+  <div class="loader-inner">
+    <div class="loader-mark">KU</div>
+    <div class="loader-text">Initializing Room 1C3</div>
+  </div>
+</div>
+
+<!-- ============ INSTRUCTIONS ============ -->
+<div class="instructions" id="instructions">
+  <div class="inst-card">
+    <div class="inst-eyebrow">KUMC Facilities / Training Prototype</div>
+    <h1 class="inst-title">Room 1C3 — Mechanical</h1>
+    <p class="inst-body">
+      Interactive walkthrough of the mechanical room. Click any piece of equipment to inspect it, review PM procedures, LOTO steps, and run troubleshooting scenarios.
+    </p>
+    <div class="inst-list">
+      <div class="inst-item">
+        <span class="inst-key">Drag</span>
+        <span>Rotate the room. Click &amp; drag to look around.</span>
+      </div>
+      <div class="inst-item">
+        <span class="inst-key">Scroll</span>
+        <span>Zoom in and out.</span>
+      </div>
+      <div class="inst-item">
+        <span class="inst-key">Click</span>
+        <span>Select equipment — blue = mechanical, amber = electrical, green = controls.</span>
+      </div>
+      <div class="inst-item">
+        <span class="inst-key">VR</span>
+        <span>On Quest headsets: tap <strong>Enter VR</strong> for immersive mode.</span>
+      </div>
+    </div>
+    <button class="inst-btn" id="inst-start">Begin Training →</button>
+  </div>
+</div>
+
+<!-- ============ TOOLTIP ============ -->
+<div id="tooltip"></div>
+
+<!-- ============ 3D CANVAS ============ -->
+<div id="canvas-container"></div>
+
+<!-- ============ HUD TOP ============ -->
+<div class="hud-top">
+  <div class="brand">
+    <div class="brand-mark">KU</div>
+    <div class="brand-text">
+      <strong>KUMC FACILITIES</strong><br>
+      <span class="sub">MULTI-CRAFT VR TRAINING</span>
+    </div>
+  </div>
+  <div class="room-badge">
+    <span class="dot"></span>Room 1C3 · Mechanical · Bldg 66
+  </div>
+</div>
+
+<!-- ============ LEGEND ============ -->
+<div class="legend">
+  <h3>CATEGORY</h3>
+  <div class="legend-item"><div class="legend-swatch" style="background:#3b82f6"></div>Mechanical</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#fbbf24"></div>Electrical</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#10b981"></div>Controls (BAS)</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#ef4444"></div>Safety</div>
+  <h3 style="margin-top:16px">PIPING</h3>
+  <div class="legend-item"><div class="legend-swatch" style="background:#0099cc"></div>CHW Supply</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#cc0000"></div>HW Supply</div>
+</div>
+
+<!-- ============ BOTTOM CONTROLS ============ -->
+<div class="hud-bottom">
+  <button class="ctrl-btn" id="btn-reset">⟲ Reset View</button>
+  <button class="ctrl-btn" id="btn-top">⌖ Top-Down</button>
+  <button class="ctrl-btn" id="btn-walk">⤓ First Person</button>
+  <button class="ctrl-btn warn" id="btn-fault">⚠ Simulate Fault</button>
+  <button class="ctrl-btn vr" id="btn-vr">▶ Enter VR</button>
+</div>
+
+<!-- ============ INSPECTOR PANEL ============ -->
+<aside class="inspector" id="inspector">
+  <div class="inspector-header">
+    <div class="insp-tag-row">
+      <div class="insp-tag" id="insp-tag">—</div>
+      <button class="insp-close" id="insp-close">×</button>
+    </div>
+    <h2 class="insp-title" id="insp-title">Equipment</h2>
+    <div class="insp-subtitle" id="insp-subtitle">—</div>
+    <div class="status-strip" id="insp-status"></div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" data-tab="overview">Overview</button>
+    <button class="tab" data-tab="pm">PM</button>
+    <button class="tab" data-tab="loto">LOTO</button>
+    <button class="tab" data-tab="ts">Troubleshoot</button>
+  </div>
+  <div class="tab-content active" id="tab-overview"></div>
+  <div class="tab-content" id="tab-pm"></div>
+  <div class="tab-content" id="tab-loto"></div>
+  <div class="tab-content" id="tab-ts"></div>
+</aside>
+
+<!-- ============ THREE.JS ============ -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.module.min.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { VRButton } from 'three/addons/webxr/VRButton.js';
+
+// ============================================================
+// EQUIPMENT DATABASE — fictional but realistic healthcare mech room
+// ============================================================
+const EQUIPMENT = {
+  'AHU-1': {
+    name: 'Air Handling Unit 1',
+    category: 'mechanical',
+    color: 0x3b82f6,
+    subtitle: '15,000 CFM • Serves Level 1 East Zone',
+    pos: [-7, 0, -5], size: [6, 3.2, 2.6],
+    status: [
+      { label: 'State', value: 'RUN', cls: 'ok' },
+      { label: 'SA Temp', value: '55.2°F', cls: 'ok' },
+      { label: 'Filter ΔP', value: '0.82"wc', cls: 'warn' },
+      { label: 'Fan SPD', value: '72%', cls: 'ok' },
+    ],
+    spec: {
+      'Manufacturer': 'Generic (prototype)',
+      'CFM': '15,000',
+      'Motor': '40 HP, 480V/3ph',
+      'Filter Type': 'MERV 13, 24×24×4',
+      'Cooling Coil': '8-row chilled water',
+      'Heating Coil': '2-row hot water',
+      'Economizer': 'Yes, 100% OA capable',
+    },
+    description: 'Primary air handler for the Level 1 east zone. Supply/return with mixing box, pre-filter, final filter, cooling coil, heating coil, and VFD-driven supply fan. All controls tied to BAS-01.',
+    components: [
+      { tag: 'FLTR', label: 'Filter Section — MERV 13 pre + final' },
+      { tag: 'CC', label: 'Cooling Coil (CHW)' },
+      { tag: 'HC', label: 'Heating Coil (HW)' },
+      { tag: 'SF', label: 'Supply Fan — 40HP w/ VFD' },
+      { tag: 'ECO', label: 'Economizer Dampers' },
+      { tag: 'SAT', label: 'Supply Air Temp Sensor' },
+    ],
+    pm: {
+      monthly: [
+        { title: 'Inspect filters, record pressure drop', detail: 'Target < 1.0"wc. Replace pre-filters if > 0.5"wc, final if > 1.25"wc.' },
+        { title: 'Verify damper operation', detail: 'Cycle economizer from BAS. Verify full travel and modulation.' },
+        { title: 'Check drain pan & P-trap', detail: 'Clear condensate drain. Confirm P-trap is primed.' },
+        { title: 'Inspect belts & sheaves', detail: 'Note: direct-drive fan — skip if not applicable. Confirm coupling.' },
+      ],
+      quarterly: [
+        { title: 'Replace pre-filters', detail: 'MERV 8, 24×24×2. Record date on frame.' },
+        { title: 'Coil inspection', detail: 'Visual for bent fins, fouling. Comb fins if needed.' },
+        { title: 'Motor lubrication', detail: 'Grease per manufacturer schedule. Do not over-grease.' },
+        { title: 'VFD inspection', detail: 'Clean heat sink, check connections, log fault history.' },
+      ],
+      annual: [
+        { title: 'Replace final filters', detail: 'MERV 13, 24×24×4.' },
+        { title: 'Coil cleaning', detail: 'Chemical clean coils, inspect for leaks.' },
+        { title: 'Bearing inspection', detail: 'Vibration analysis on fan motor bearings.' },
+        { title: 'Control calibration', detail: 'Verify SAT, RAT, MAT sensors vs. calibrated reference.' },
+        { title: 'Damper actuator test', detail: 'Full stroke, verify feedback matches command.' },
+      ],
+    },
+    loto: [
+      { title: 'Notify & coordinate', detail: 'Notify building occupants and BAS operator. Schedule outage per BAS-01 work order.' },
+      { title: 'Stop the equipment from BAS', detail: 'Command AHU-1 OFF from BAS-01. Verify fan stopped visually and via SS-1 status.' },
+      { title: 'Identify energy source', detail: 'AHU-1 fan motor fed from MDP-1 via VFD. Disconnect is 60A non-fused at panel.', code: 'MDP-1 / Pos 7' },
+      { title: 'Open disconnect', detail: 'Turn disconnect handle to OFF. Visually verify blades open.' },
+      { title: 'Apply lock & tag', detail: 'Apply personal lock and danger tag. Each worker applies own lock.' },
+      { title: 'Verify zero energy', detail: 'Press Start from local panel — fan should not start. Meter line-side of VFD for zero voltage.' },
+      { title: 'Release stored energy', detail: 'Allow impeller to coast to stop. Block rotor if working on coupling or bearings.' },
+    ],
+    scenarios: [
+      {
+        id: 'ahu-no-cool',
+        difficulty: 'med',
+        title: 'AHU-1 not cooling — Level 1 east complaints',
+        brief: 'Occupants on Level 1 east report spaces running warm since this morning. BAS shows AHU-1 running but SAT trending up.',
+        maxScore: 100,
+        steps: [
+          {
+            prompt: 'First action. <strong>What do you check before going to the AHU?</strong>',
+            choices: [
+              { text: 'Pull up AHU-1 graphic on BAS-01 — check SAT, CHW valve %, setpoints', result: 'good', delta: 20, feedback: 'Correct. Always verify from the BAS first. Saves a trip and often identifies the root cause remotely.' },
+              { text: 'Go straight to the mechanical room and open the AHU panel', result: 'bad', delta: -15, feedback: 'Skipped diagnostic step. Opening panels on live equipment without first checking BAS wastes time and creates safety exposure.' },
+              { text: 'Tell the occupants to be patient', result: 'bad', delta: -20, feedback: 'That is not maintenance. Do not dismiss an active complaint.' },
+            ],
+          },
+          {
+            prompt: 'BAS shows: SAT 68°F (setpoint 55°F), CHW valve commanded 100% open, fan running 85%, discharge air increasing. <strong>What is the most likely problem?</strong>',
+            choices: [
+              { text: 'Chilled water not reaching the coil — check CHW supply temp and flow', result: 'good', delta: 25, feedback: 'Good reasoning. Valve is open but SAT is high — either no flow, no cold water, or the valve is not actually open (stuck actuator).' },
+              { text: 'Filter is dirty', result: 'teaching', delta: -5, feedback: 'Unlikely. Dirty filter reduces airflow but would not raise SAT like this. Always check the data.' },
+              { text: 'Fan belt is slipping', result: 'bad', delta: -10, feedback: 'AHU-1 is direct drive. No belt. Know your equipment.' },
+            ],
+          },
+          {
+            prompt: 'You head to the mech room. <strong>Before you open anything, what do you do?</strong>',
+            choices: [
+              { text: 'Verify CHW supply temperature at CH-1 — is the chiller even making cold water?', result: 'good', delta: 20, feedback: 'Smart. Upstream first. If CH-1 is down or CHW temp is 55°F, no amount of work on the AHU will fix it.' },
+              { text: 'Open AHU electrical panel to check VFD fault codes', result: 'teaching', delta: 0, feedback: 'Fan is running — VFD is fine. And you would need LOTO before opening anything.' },
+              { text: 'Replace the CHW actuator', result: 'bad', delta: -15, feedback: 'No diagnosis, no LOTO, wasted part. This is how callbacks happen.' },
+            ],
+          },
+          {
+            prompt: 'CH-1 is producing 44°F CHW. CHW supply to AHU-1 at coil inlet is 44°F. CHW return is also 44°F. <strong>What does this tell you?</strong>',
+            choices: [
+              { text: 'CHW is not flowing through the coil — valve commanded open but not actually open', result: 'good', delta: 25, feedback: 'Exactly. Delta-T of zero means no flow. CHW is cold at the valve, so the problem is at or after the valve.' },
+              { text: 'The coil is blocked with air', result: 'teaching', delta: -5, feedback: 'Possible but less likely. Air-bound coil usually shows partial flow and poor delta-T, not zero.' },
+              { text: 'The chiller is too small', result: 'bad', delta: -15, feedback: 'You have 44°F water at the coil. The chiller is fine. Read the data.' },
+            ],
+          },
+          {
+            prompt: 'You need to inspect the CHW valve actuator. <strong>Before touching anything:</strong>',
+            choices: [
+              { text: 'Lock out AHU-1 per LOTO procedure, then close CHW isolation valves before removing actuator', result: 'good', delta: 20, feedback: 'Correct sequence. Electrical LOTO for the AHU fan (you will be leaning on equipment), mechanical isolation for the CHW (you may need to pull the actuator).' },
+              { text: 'Just close the CHW isolation valve — you are not working on electrical', result: 'bad', delta: -15, feedback: 'The valve actuator is electric (24V or 120V). And the AHU fan is running — you should not work on energized moving equipment. LOTO.' },
+              { text: 'Tell the BAS to take AHU-1 offline and start work', result: 'teaching', delta: -5, feedback: 'Commanding off from BAS is not LOTO. Software command can be overridden. Use the physical disconnect and lock.' },
+            ],
+          },
+          {
+            prompt: 'Actuator pulled. Manually operating the valve stem shows the <strong>valve itself is stuck.</strong> Actuator is fine. Root cause?',
+            choices: [
+              { text: 'Stuck valve — likely scale buildup or packing seized. Replace or rebuild the valve.', result: 'good', delta: 10, feedback: 'Correct diagnosis. Document, order parts, restore service temporarily by manually positioning if possible, schedule proper repair.' },
+              { text: 'Replace the actuator anyway', result: 'bad', delta: -10, feedback: 'You just proved the actuator works. Do not throw parts at problems.' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'ahu-dirty-filter',
+        difficulty: 'easy',
+        title: 'High filter differential pressure alarm',
+        brief: 'BAS shows filter ΔP alarm on AHU-1. Reading 0.95"wc, alarm set at 1.0"wc.',
+        maxScore: 60,
+        steps: [
+          {
+            prompt: 'Alarm level, not critical yet. <strong>First step?</strong>',
+            choices: [
+              { text: 'Schedule filter replacement during next off-hours window', result: 'good', delta: 20, feedback: 'Right call. 0.95" is alarm-soon, not emergency. Plan a proper change-out.' },
+              { text: 'Replace filters immediately during occupied hours', result: 'teaching', delta: 5, feedback: 'Works, but disruptive. If it is not emergent, schedule it.' },
+              { text: 'Raise the alarm threshold to 1.5"', result: 'bad', delta: -20, feedback: 'Never mask an alarm. The alarm is doing its job.' },
+            ],
+          },
+          {
+            prompt: 'During change-out, <strong>what LOTO is required?</strong>',
+            choices: [
+              { text: 'Full electrical LOTO — fan stopped, disconnect locked', result: 'good', delta: 20, feedback: 'Yes. You are reaching into the filter rack with a running fan nearby. LOTO the fan.' },
+              { text: 'No LOTO — filter change is routine', result: 'bad', delta: -20, feedback: 'Serious safety miss. Hands near a running fan = LOTO. Every time.' },
+            ],
+          },
+          {
+            prompt: 'Old filters out, inspecting. <strong>Before installing new filters:</strong>',
+            choices: [
+              { text: 'Vacuum the filter rack and inspect coil surface for debris pulled through', result: 'good', delta: 20, feedback: 'Thorough. New filters in a dirty rack fail faster.' },
+              { text: 'Just put the new filters in and close up', result: 'teaching', delta: 5, feedback: 'Gets the job done but leaves dirt that shortens new filter life.' },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+
+  'CH-1': {
+    name: 'Air-Cooled Chiller',
+    category: 'mechanical', color: 0x3b82f6,
+    subtitle: '120 Ton • R-410A • Roof-mounted condenser',
+    pos: [-8, 0, 2], size: [3.2, 2.2, 2.2],
+    status: [
+      { label: 'State', value: 'RUN', cls: 'ok' },
+      { label: 'CHW Out', value: '44.1°F', cls: 'ok' },
+      { label: 'Amps', value: '142A', cls: 'ok' },
+      { label: 'Hours', value: '12,847', cls: '' },
+    ],
+    spec: {
+      'Capacity': '120 TON',
+      'Refrigerant': 'R-410A',
+      'Compressors': '(2) Scroll',
+      'Electrical': '480V/3ph, 200A',
+      'Condenser': 'Air-cooled, roof',
+      'Evaporator': 'Brazed plate',
+    },
+    description: 'Primary air-cooled chiller. Serves the CHW loop feeding AHU-1. Two staged scroll compressors. Condenser section mounted on roof.',
+    components: [
+      { tag: 'COMP-A', label: 'Compressor A — Scroll' },
+      { tag: 'COMP-B', label: 'Compressor B — Scroll' },
+      { tag: 'EVAP', label: 'Evaporator (brazed plate)' },
+      { tag: 'CTRL', label: 'Chiller Controller' },
+    ],
+    pm: {
+      monthly: [
+        { title: 'Log operating data', detail: 'CHW supply/return temps, amps each compressor, suction/discharge pressures, oil levels.' },
+        { title: 'Visual leak check', detail: 'Inspect for oil staining, corrosion, frost on lines.' },
+      ],
+      quarterly: [
+        { title: 'Clean condenser coils', detail: 'Rooftop: remove debris, rinse coils. Do not bend fins.' },
+        { title: 'Check refrigerant charge', detail: 'Verify subcooling and superheat against manufacturer targets.' },
+      ],
+      annual: [
+        { title: 'Megger compressor motors', detail: 'Record insulation resistance. Trend year over year.' },
+        { title: 'Oil analysis', detail: 'Send sample to lab. Check acid number, moisture, wear metals.' },
+        { title: 'Relief valve inspection', detail: 'Verify not obstructed. Replace on 5-year cycle.' },
+      ],
+    },
+    loto: [
+      { title: 'Notify chilled water users', detail: 'CH-1 outage affects AHU-1. Coordinate load drop.' },
+      { title: 'Stop via chiller controller', detail: 'Commanded shutdown through CTRL panel. Allow pumpdown cycle to complete.' },
+      { title: 'Isolate electrical at MDP-1', detail: 'CH-1 disconnect is 200A fused at MDP-1.', code: 'MDP-1 / Pos 1-3' },
+      { title: 'Apply lock & tag to disconnect', detail: 'Personal lock on disconnect handle.' },
+      { title: 'Isolate CHW', detail: 'Close CHW inlet and outlet manual isolation valves. Tag closed.' },
+      { title: 'Verify zero voltage', detail: 'Test at compressor terminals, line side to load side.' },
+      { title: 'Refrigerant service', detail: 'If opening refrigerant circuit — recover per EPA 608 before proceeding.' },
+    ],
+    scenarios: [
+      {
+        id: 'ch-high-disc',
+        difficulty: 'hard',
+        title: 'CH-1 high discharge pressure trip',
+        brief: 'CH-1 tripped on high discharge pressure at 14:22. Alarm on BAS. It is 95°F outside.',
+        maxScore: 100,
+        steps: [
+          {
+            prompt: 'High discharge + hot outside. <strong>Most likely cause?</strong>',
+            choices: [
+              { text: 'Condenser airflow problem — dirty coils or failed fan', result: 'good', delta: 25, feedback: 'Top of the list on a hot day. Air-cooled chillers depend on condenser airflow to reject heat. Dirty coils or a dead fan = high head pressure.' },
+              { text: 'Low refrigerant charge', result: 'teaching', delta: -5, feedback: 'Low charge usually causes low suction, not high discharge. Rethink.' },
+              { text: 'Compressor failure', result: 'bad', delta: -10, feedback: 'Jumping to the worst case. Start with the cheapest, most likely cause.' },
+            ],
+          },
+          {
+            prompt: 'Before going to the roof, <strong>what do you do?</strong>',
+            choices: [
+              { text: 'Check BAS for condenser fan status and discharge pressure trend leading up to trip', result: 'good', delta: 20, feedback: 'Excellent. If fans were cycling off before trip, you already have your answer.' },
+              { text: 'Head straight to the roof with tools', result: 'teaching', delta: -5, feedback: 'Data first. Less climbing.' },
+            ],
+          },
+          {
+            prompt: 'BAS shows fan #2 on the condenser was drawing no current in the 20 min before trip. <strong>Action?</strong>',
+            choices: [
+              { text: 'Roof inspection: LOTO the chiller first, then access the condenser fan bank', result: 'good', delta: 25, feedback: 'Correct. You will be on a roof around electrical and refrigerant. Full LOTO, fall protection, coordinate access.' },
+              { text: 'Replace the contactor from memory', result: 'bad', delta: -20, feedback: 'Throwing parts without diagnosis. Also missing LOTO and access planning.' },
+            ],
+          },
+          {
+            prompt: 'Fan #2 motor is seized. <strong>Diagnosis & next step?</strong>',
+            choices: [
+              { text: 'Motor bearing failure. Order replacement, place CH-1 in manual w/ reduced capacity until repair, monitor head pressure.', result: 'good', delta: 20, feedback: 'Pragmatic. Partial capacity beats full outage if loads allow. Document for capital planning.' },
+              { text: 'Shut CH-1 down until new motor arrives', result: 'teaching', delta: 5, feedback: 'Safe but may be overkill if you can operate reduced with trending.' },
+              { text: 'Bypass the head pressure safety to keep it running', result: 'bad', delta: -30, feedback: 'Never bypass a safety. Immediate disqualification in real life — equipment damage and potential refrigerant release.' },
+            ],
+          },
+          {
+            prompt: 'While the motor is out, <strong>what else should you do?</strong>',
+            choices: [
+              { text: 'Inspect and clean the condenser coils, check the other fans, trend their current draw', result: 'good', delta: 10, feedback: 'One down often means another is stressed. Preventive work while you have access.' },
+              { text: 'Close up and wait for the next PM', result: 'teaching', delta: -5, feedback: 'Missed opportunity. You are already up there with LOTO applied.' },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+
+  'B-1': {
+    name: 'Hot Water Boiler',
+    category: 'mechanical', color: 0x3b82f6,
+    subtitle: '1,500 MBH • Natural Gas • Condensing',
+    pos: [-3, 0, 2], size: [2.4, 2.4, 1.6],
+    status: [
+      { label: 'State', value: 'RUN', cls: 'ok' },
+      { label: 'HWS', value: '158°F', cls: 'ok' },
+      { label: 'Flame', value: 'OK', cls: 'ok' },
+      { label: 'Hours', value: '8,201', cls: '' },
+    ],
+    spec: {
+      'Input': '1,500 MBH',
+      'Fuel': 'Natural Gas',
+      'Efficiency': '95% (condensing)',
+      'Max HWS Temp': '180°F',
+      'Flue': '4" PVC, sidewall',
+    },
+    description: 'High-efficiency condensing hot water boiler. Primary source for the HW loop feeding AHU-1 heating coil.',
+    components: [
+      { tag: 'BURN', label: 'Burner Assembly' },
+      { tag: 'HX', label: 'Heat Exchanger' },
+      { tag: 'GAS', label: 'Gas Train' },
+      { tag: 'TRAP', label: 'Condensate Trap' },
+    ],
+    pm: {
+      monthly: [
+        { title: 'Visual inspection', detail: 'Check flame pattern through sight glass. Should be steady blue.' },
+        { title: 'Condensate trap check', detail: 'Clear trap, verify drain.' },
+      ],
+      quarterly: [
+        { title: 'Combustion analysis', detail: 'O2, CO, stack temp. Adjust if out of spec.' },
+      ],
+      annual: [
+        { title: 'Full burner service', detail: 'Clean burner, replace igniter/flame rod as needed.' },
+        { title: 'Heat exchanger inspection', detail: 'Scope the HX for scale, soot, corrosion.' },
+        { title: 'Relief valve test', detail: 'Manual test. Replace per code schedule.' },
+        { title: 'Gas train leak check', detail: 'Soap all fittings. Verify regulator setpoint.' },
+      ],
+    },
+    loto: [
+      { title: 'Coordinate HW users', detail: 'Notify BAS. Schedule outage when heat load allows.' },
+      { title: 'Shut down from controller', detail: 'Controlled shutdown sequence. Let post-purge complete.' },
+      { title: 'Close main gas valve', detail: 'Locate manual gas shutoff upstream. Close and lock.', code: 'Gas cock / wall-mount' },
+      { title: 'Electrical LOTO', detail: 'Disconnect at LP-1C3. Lock and tag.', code: 'LP-1C3 / 15A circuit' },
+      { title: 'Isolate HW side', detail: 'Close HWS and HWR isolation valves.' },
+      { title: 'Relieve pressure', detail: 'Open drain slowly. Never open while hot.' },
+    ],
+    scenarios: [],
+  },
+
+  'P-1': {
+    name: 'CHW Pump — Lead',
+    category: 'mechanical', color: 0x3b82f6,
+    subtitle: '600 GPM @ 80 ft hd • 20 HP',
+    pos: [-8, 0, 5], size: [1.2, 1.2, 0.8],
+    status: [
+      { label: 'State', value: 'RUN', cls: 'ok' },
+      { label: 'Speed', value: '78%', cls: 'ok' },
+      { label: 'Amps', value: '24.2A', cls: 'ok' },
+      { label: 'Vib', value: '0.09 in/s', cls: 'ok' },
+    ],
+    spec: {
+      'Flow': '600 GPM',
+      'Head': '80 ft',
+      'Motor': '20 HP, 480V/3ph',
+      'Drive': 'VFD-1',
+      'Seal': 'Mechanical',
+    },
+    description: 'Lead chilled water circulator. Pairs with P-2 in lead/lag. VFD-1 modulates speed per CHW differential pressure.',
+    components: [
+      { tag: 'MOTOR', label: 'Motor — 20HP TEFC' },
+      { tag: 'PUMP', label: 'Pump End' },
+      { tag: 'SEAL', label: 'Mechanical Seal' },
+      { tag: 'COUPL', label: 'Coupling' },
+    ],
+    pm: {
+      monthly: [
+        { title: 'Log operating data', detail: 'Amps, speed, suction/discharge pressure, vibration.' },
+        { title: 'Seal leak check', detail: 'Visual for drips. Slight weep normal; stream is not.' },
+      ],
+      quarterly: [
+        { title: 'Vibration analysis', detail: 'Full spectrum. Trend against baseline.' },
+        { title: 'Coupling inspection', detail: 'Check alignment markers. Listen for noise at start.' },
+      ],
+      annual: [
+        { title: 'Motor megger', detail: 'Insulation resistance to ground.' },
+        { title: 'Bearing lubrication', detail: 'Per mfr spec. Do not over-grease.' },
+        { title: 'Seal replacement', detail: 'If trending weep or at 3-year interval.' },
+      ],
+    },
+    loto: [
+      { title: 'Lead-lag swap', detail: 'Command P-2 to lead on BAS, verify P-2 carries load.' },
+      { title: 'Stop P-1', detail: 'Command OFF at BAS. Verify via local status.' },
+      { title: 'Electrical disconnect', detail: 'VFD-1 disconnect or upstream at MDP-1.', code: 'MDP-1 / Pos 11' },
+      { title: 'Lock & tag', detail: 'Personal lock on disconnect.' },
+      { title: 'Isolate mechanically', detail: 'Close suction and discharge isolation valves.' },
+      { title: 'Relieve pressure', detail: 'Open drain. Expect cold water — protect feet.' },
+    ],
+    scenarios: [],
+  },
+
+  'MDP-1': {
+    name: 'Main Distribution Panel',
+    category: 'electrical', color: 0xfbbf24,
+    subtitle: '480Y/277V • 400A MCB',
+    pos: [8, 0, -4], size: [1.0, 2.4, 0.6],
+    status: [
+      { label: 'State', value: 'ENERGIZED', cls: 'ok' },
+      { label: 'Load', value: '68%', cls: 'ok' },
+      { label: 'PhA', value: '278V', cls: 'ok' },
+      { label: 'PhB', value: '277V', cls: 'ok' },
+    ],
+    spec: {
+      'Voltage': '480Y/277V 3-phase',
+      'Main Breaker': '400A',
+      'Bus Rating': '400A',
+      'AIC Rating': '65 kA',
+      'Feeds': 'AHU-1, CH-1, Pumps, XFMR-1',
+    },
+    description: 'Main electrical distribution panel for Room 1C3 mechanical loads. Feeds major equipment disconnects.',
+    components: [
+      { tag: 'MAIN', label: 'Main Breaker — 400A' },
+      { tag: 'B1', label: 'CH-1 Feed — 200A' },
+      { tag: 'B7', label: 'AHU-1 Feed — 60A' },
+      { tag: 'B11', label: 'VFD-1 (P-1)' },
+      { tag: 'B12', label: 'VFD-2 (P-2)' },
+      { tag: 'XFMR', label: 'XFMR-1 Feed — 100A' },
+    ],
+    pm: {
+      annual: [
+        { title: 'IR thermography scan', detail: 'Under load. Identify hot connections, overloaded breakers.' },
+        { title: 'Torque verification', detail: 'De-energized. Verify all connections per mfr spec.' },
+        { title: 'Cleaning', detail: 'De-energized. Blow out dust and debris.' },
+      ],
+    },
+    loto: [
+      { title: 'CRITICAL', detail: 'Work on this panel requires qualified electrician and hot work permit if energized. Arc flash PPE mandatory.' },
+      { title: 'De-energize', detail: 'Open main breaker at upstream feed (building main).' },
+      { title: 'Lock main breaker', detail: 'Padlock on main breaker handle in OFF position.' },
+      { title: 'Verify absence of voltage', detail: 'Test known-live → test panel → test known-live again. Live-Dead-Live.' },
+      { title: 'Apply grounds', detail: 'For work on bus. Use properly rated grounding cables.' },
+    ],
+    scenarios: [],
+  },
+
+  'BAS-01': {
+    name: 'BAS Controller',
+    category: 'controls', color: 0x10b981,
+    subtitle: 'Niagara N4 • JACE Supervisory',
+    pos: [5, 0.6, 0], size: [0.6, 0.8, 0.3],
+    status: [
+      { label: 'State', value: 'ONLINE', cls: 'ok' },
+      { label: 'Points', value: '847', cls: '' },
+      { label: 'Alarms', value: '1', cls: 'warn' },
+      { label: 'CPU', value: '34%', cls: 'ok' },
+    ],
+    spec: {
+      'Platform': 'Niagara N4',
+      'Protocol': 'BACnet, Modbus',
+      'Points': '847 active',
+      'Power': '24 VAC',
+    },
+    description: 'Supervisory controller for all Room 1C3 equipment. Provides BACnet integration to the facility BMS.',
+    components: [
+      { tag: 'CPU', label: 'JACE Controller' },
+      { tag: 'IO', label: 'I/O Modules' },
+      { tag: 'PSU', label: 'Power Supply — 24 VAC' },
+    ],
+    pm: {
+      quarterly: [
+        { title: 'Database backup', detail: 'Export Niagara station. Store offsite.' },
+        { title: 'Alarm review', detail: 'Clear stale alarms, verify active alarms represent real conditions.' },
+      ],
+      annual: [
+        { title: 'Point calibration audit', detail: 'Sample sensors for accuracy vs. reference.' },
+        { title: 'Firmware check', detail: 'Review vendor advisories. Apply security patches.' },
+      ],
+    },
+    loto: [
+      { title: 'Notify before shutdown', detail: 'Taking BAS offline means all controlled equipment goes to failsafe. Coordinate.' },
+      { title: 'Electrical LOTO at circuit', detail: 'Controller fed from LP-1C3. Lock individual breaker.', code: 'LP-1C3 / 5A ckt' },
+    ],
+    scenarios: [],
+  },
+
+  'EW-1': {
+    name: 'Emergency Eye Wash',
+    category: 'safety', color: 0xef4444,
+    subtitle: 'ANSI Z358.1 • Weekly test required',
+    pos: [8, 0, 4], size: [0.6, 1.6, 0.6],
+    status: [
+      { label: 'State', value: 'READY', cls: 'ok' },
+      { label: 'Last Test', value: '6 days', cls: 'ok' },
+      { label: 'Water', value: 'OK', cls: 'ok' },
+    ],
+    spec: {
+      'Standard': 'ANSI Z358.1-2014',
+      'Flow': '0.4 GPM min',
+      'Duration': '15 min continuous',
+    },
+    description: 'Plumbed eye wash station. Required within 10 seconds travel of hazardous chemical areas.',
+    components: [{ tag: 'VLV', label: 'Activation Valve' }],
+    pm: {
+      weekly: [
+        { title: 'Flush 3 minutes', detail: 'Run clean until water is clear. Document on inspection tag.' },
+        { title: 'Verify flow pattern', detail: 'Both nozzles flowing, no obstruction.' },
+      ],
+      annual: [
+        { title: 'Full inspection per ANSI Z358.1', detail: 'Water temp (tepid 60-100°F), flow rate, clearance.' },
+      ],
+    },
+    loto: [],
+    scenarios: [],
+  },
+};
+
+// ============================================================
+// THREE.JS SCENE
+// ============================================================
+const container = document.getElementById('canvas-container');
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(0x050a14, 20, 80);
+
+const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 200);
+camera.position.set(14, 12, 14);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(0x050a14);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.xr.enabled = true;
+container.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.minDistance = 4;
+controls.maxDistance = 40;
+controls.maxPolarAngle = Math.PI / 2 - 0.02;
+controls.target.set(0, 1.5, 0);
+
+// ============ VR BUTTON ============
+document.body.appendChild(VRButton.createButton(renderer));
+const vrBtnNative = document.querySelector('body > button');
+if (vrBtnNative) vrBtnNative.style.display = 'none'; // hide default, we use our own
+document.getElementById('btn-vr').addEventListener('click', () => {
+  if (vrBtnNative) vrBtnNative.click();
+});
+
+// ============ LIGHTING ============
+scene.add(new THREE.AmbientLight(0xc4d4f0, 0.35));
+
+const hemi = new THREE.HemisphereLight(0x90b4ff, 0x1a2030, 0.6);
+scene.add(hemi);
+
+const keyLight = new THREE.DirectionalLight(0xffffff, 0.9);
+keyLight.position.set(10, 20, 8);
+keyLight.castShadow = true;
+keyLight.shadow.mapSize.width = 2048;
+keyLight.shadow.mapSize.height = 2048;
+keyLight.shadow.camera.near = 1;
+keyLight.shadow.camera.far = 60;
+keyLight.shadow.camera.left = -20;
+keyLight.shadow.camera.right = 20;
+keyLight.shadow.camera.top = 20;
+keyLight.shadow.camera.bottom = -20;
+scene.add(keyLight);
+
+const fillLight = new THREE.DirectionalLight(0x8fb4ff, 0.3);
+fillLight.position.set(-10, 8, -5);
+scene.add(fillLight);
+
+// Accent lights for atmosphere
+const accent1 = new THREE.PointLight(0x3b82f6, 0.5, 20);
+accent1.position.set(-8, 4, -6);
+scene.add(accent1);
+
+const accent2 = new THREE.PointLight(0xfbbf24, 0.3, 15);
+accent2.position.set(8, 3, -4);
+scene.add(accent2);
+
+// ============ ROOM ============
+const ROOM_W = 24; // 40 ft at ~0.6 scale
+const ROOM_D = 20; // 33 ft
+const ROOM_H = 5;  // ~14 ft
+
+// Floor
+const floorGeo = new THREE.PlaneGeometry(ROOM_W, ROOM_D, 40, 32);
+const floorMat = new THREE.MeshStandardMaterial({
+  color: 0x2a3244,
+  roughness: 0.85,
+  metalness: 0.1,
+});
+const floor = new THREE.Mesh(floorGeo, floorMat);
+floor.rotation.x = -Math.PI / 2;
+floor.receiveShadow = true;
+scene.add(floor);
+
+// Floor grid overlay
+const gridHelper = new THREE.GridHelper(ROOM_W, 24, 0x3b82f6, 0x1a2540);
+gridHelper.material.opacity = 0.25;
+gridHelper.material.transparent = true;
+gridHelper.position.y = 0.01;
+scene.add(gridHelper);
+
+// Walls
+const wallMat = new THREE.MeshStandardMaterial({
+  color: 0x1e2838,
+  roughness: 0.9,
+  metalness: 0.05,
+  side: THREE.DoubleSide,
+  transparent: true,
+  opacity: 0.85,
+});
+
+function makeWall(w, h, d) {
+  const g = new THREE.BoxGeometry(w, h, d);
+  const m = new THREE.Mesh(g, wallMat);
+  m.receiveShadow = true;
+  return m;
+}
+
+// Back wall (north)
+const wallN = makeWall(ROOM_W, ROOM_H, 0.15);
+wallN.position.set(0, ROOM_H / 2, -ROOM_D / 2);
+scene.add(wallN);
+// Front wall (south) — lower to keep view open
+const wallS = makeWall(ROOM_W, ROOM_H * 0.3, 0.15);
+wallS.position.set(0, ROOM_H * 0.15, ROOM_D / 2);
+wallS.material = wallMat.clone();
+wallS.material.opacity = 0.3;
+scene.add(wallS);
+// Left wall (west)
+const wallW = makeWall(0.15, ROOM_H, ROOM_D);
+wallW.position.set(-ROOM_W / 2, ROOM_H / 2, 0);
+scene.add(wallW);
+// Right wall (east)
+const wallE = makeWall(0.15, ROOM_H, ROOM_D);
+wallE.position.set(ROOM_W / 2, ROOM_H / 2, 0);
+scene.add(wallE);
+
+// Ceiling trusses (decorative)
+const trussMat = new THREE.MeshStandardMaterial({ color: 0x0f1726, roughness: 0.7 });
+for (let i = -ROOM_W / 2 + 2; i <= ROOM_W / 2 - 2; i += 4) {
+  const truss = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.15, ROOM_D - 0.4), trussMat);
+  truss.position.set(i, ROOM_H - 0.3, 0);
+  scene.add(truss);
+}
+
+// Room labels floating
+function makeTextSprite(text, color = '#60a5fa', size = 128) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512; canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = color;
+  ctx.font = `bold ${size * 0.55}px "Space Grotesk", sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 256, size / 2);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.needsUpdate = true;
+  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
+  const sprite = new THREE.Sprite(mat);
+  return sprite;
+}
+
+const roomLabel = makeTextSprite('1C3 · MECHANICAL', '#60a5fa', 96);
+roomLabel.position.set(0, ROOM_H - 0.5, -ROOM_D / 2 + 0.2);
+roomLabel.scale.set(8, 1.5, 1);
+scene.add(roomLabel);
+
+// ============ EQUIPMENT ============
+const equipmentMeshes = [];
+const selectableObjects = [];
+
+function createEquipment(key, data) {
+  const group = new THREE.Group();
+  group.userData = { key, ...data };
+
+  const [w, h, d] = data.size;
+  const [x, y, z] = data.pos;
+
+  // Main body
+  const bodyMat = new THREE.MeshStandardMaterial({
+    color: data.color,
+    roughness: 0.4,
+    metalness: 0.6,
+    emissive: data.color,
+    emissiveIntensity: 0.05,
+  });
+  const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), bodyMat);
+  body.position.y = h / 2;
+  body.castShadow = true;
+  body.receiveShadow = true;
+  body.userData.isEquipment = true;
+  body.userData.key = key;
+  group.add(body);
+
+  // Detail strip
+  const stripMat = new THREE.MeshStandardMaterial({
+    color: 0x0a1628,
+    roughness: 0.2,
+    metalness: 0.9,
+    emissive: data.color,
+    emissiveIntensity: 0.15,
+  });
+  const strip = new THREE.Mesh(new THREE.BoxGeometry(w * 1.01, 0.08, d * 1.01), stripMat);
+  strip.position.y = h * 0.7;
+  group.add(strip);
+
+  // Top cap
+  const capMat = new THREE.MeshStandardMaterial({ color: 0x1a2540, roughness: 0.3, metalness: 0.7 });
+  const cap = new THREE.Mesh(new THREE.BoxGeometry(w * 0.98, 0.15, d * 0.98), capMat);
+  cap.position.y = h + 0.07;
+  cap.castShadow = true;
+  group.add(cap);
+
+  // Front face details
+  if (data.category === 'electrical') {
+    // Panel door with handles
+    const doorMat = new THREE.MeshStandardMaterial({ color: 0x3a2a0a, roughness: 0.5, metalness: 0.6 });
+    const door = new THREE.Mesh(new THREE.PlaneGeometry(w * 0.85, h * 0.75), doorMat);
+    door.position.set(0, h / 2, d / 2 + 0.002);
+    group.add(door);
+    // Handle
+    const handleMat = new THREE.MeshStandardMaterial({ color: 0x9ca3af, metalness: 0.9, roughness: 0.2 });
+    const handle = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.3, 0.08), handleMat);
+    handle.position.set(w * 0.3, h / 2, d / 2 + 0.06);
+    group.add(handle);
+    // Indicator light
+    const lightMat = new THREE.MeshStandardMaterial({ color: 0x10b981, emissive: 0x10b981, emissiveIntensity: 1.2 });
+    const light = new THREE.Mesh(new THREE.SphereGeometry(0.06, 12, 12), lightMat);
+    light.position.set(-w * 0.35, h * 0.85, d / 2 + 0.05);
+    group.add(light);
+  } else if (data.category === 'mechanical') {
+    // Inspection panel lines
+    const lineMat = new THREE.LineBasicMaterial({ color: 0x0a1628, linewidth: 2 });
+    const panel1 = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(-w * 0.25, h * 0.2, d / 2 + 0.01),
+      new THREE.Vector3(-w * 0.25, h * 0.8, d / 2 + 0.01),
+      new THREE.Vector3(w * 0.25, h * 0.8, d / 2 + 0.01),
+      new THREE.Vector3(w * 0.25, h * 0.2, d / 2 + 0.01),
+      new THREE.Vector3(-w * 0.25, h * 0.2, d / 2 + 0.01),
+    ]);
+    group.add(new THREE.Line(panel1, lineMat));
+    // Status indicator
+    const indMat = new THREE.MeshStandardMaterial({ color: 0x10b981, emissive: 0x10b981, emissiveIntensity: 1.5 });
+    const ind = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 12), indMat);
+    ind.position.set(w * 0.4, h * 0.9, d / 2 + 0.05);
+    ind.userData.isStatusLight = true;
+    group.add(ind);
+    body.userData.statusLight = ind;
+  } else if (data.category === 'controls') {
+    // Screen
+    const screenMat = new THREE.MeshStandardMaterial({ color: 0x10b981, emissive: 0x10b981, emissiveIntensity: 0.8 });
+    const screen = new THREE.Mesh(new THREE.PlaneGeometry(w * 0.7, h * 0.5), screenMat);
+    screen.position.set(0, h * 0.6, d / 2 + 0.002);
+    group.add(screen);
+  } else if (data.category === 'safety') {
+    // Green bowl shape
+    const bowlMat = new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.3 });
+    const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.2, 0.15, 16), bowlMat);
+    bowl.position.set(0, h + 0.15, 0);
+    group.add(bowl);
+  }
+
+  // Floor tag (decal)
+  const tagCanvas = document.createElement('canvas');
+  tagCanvas.width = 256; tagCanvas.height = 64;
+  const tctx = tagCanvas.getContext('2d');
+  tctx.fillStyle = 'rgba(10,22,40,0.85)';
+  tctx.fillRect(0, 0, 256, 64);
+  tctx.strokeStyle = `#${data.color.toString(16).padStart(6, '0')}`;
+  tctx.lineWidth = 3;
+  tctx.strokeRect(2, 2, 252, 60);
+  tctx.fillStyle = `#${data.color.toString(16).padStart(6, '0')}`;
+  tctx.font = 'bold 32px "JetBrains Mono", monospace';
+  tctx.textAlign = 'center';
+  tctx.textBaseline = 'middle';
+  tctx.fillText(key, 128, 32);
+  const tagTex = new THREE.CanvasTexture(tagCanvas);
+  const tagMat = new THREE.MeshBasicMaterial({ map: tagTex, transparent: true, depthWrite: false });
+  const tag = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 0.4), tagMat);
+  tag.rotation.x = -Math.PI / 2;
+  tag.position.set(0, 0.02, d / 2 + 0.6);
+  group.add(tag);
+
+  // Highlight ring (hidden by default)
+  const ringGeo = new THREE.RingGeometry(Math.max(w, d) * 0.7, Math.max(w, d) * 0.75, 48);
+  const ringMat = new THREE.MeshBasicMaterial({
+    color: data.color,
+    transparent: true,
+    opacity: 0,
+    side: THREE.DoubleSide,
+  });
+  const ring = new THREE.Mesh(ringGeo, ringMat);
+  ring.rotation.x = -Math.PI / 2;
+  ring.position.y = 0.03;
+  body.userData.ring = ring;
+  group.add(ring);
+
+  group.position.set(x, y, z);
+  scene.add(group);
+  equipmentMeshes.push(group);
+  selectableObjects.push(body);
+  return group;
+}
+
+Object.entries(EQUIPMENT).forEach(([k, v]) => createEquipment(k, v));
+
+// ============ PIPING ============
+function makePipe(from, to, color, radius = 0.1) {
+  const points = [new THREE.Vector3(...from)];
+  // Add an L-shaped routing
+  const mid = [to[0], from[1], from[2]];
+  points.push(new THREE.Vector3(...mid));
+  points.push(new THREE.Vector3(...to));
+
+  const curve = new THREE.CatmullRomCurve3(points, false, 'centripetal', 0);
+  const geo = new THREE.TubeGeometry(curve, 30, radius, 10, false);
+  const mat = new THREE.MeshStandardMaterial({
+    color,
+    roughness: 0.4,
+    metalness: 0.7,
+    emissive: color,
+    emissiveIntensity: 0.05,
+  });
+  const pipe = new THREE.Mesh(geo, mat);
+  pipe.castShadow = true;
+  scene.add(pipe);
+  return pipe;
+}
+
+// CHW Supply (cyan) CH-1 → P-1 → AHU-1
+makePipe([-8, 2.2, 2], [-8, 2.5, 5], 0x0099cc);
+makePipe([-8, 2.8, 5], [-7, 2.8, -3.5], 0x0099cc);
+
+// HW Supply (red) B-1 → AHU-1
+makePipe([-3, 2.4, 2], [-7, 2.4, -3.5], 0xcc0000);
+
+// Electrical feed (amber, thin) MDP-1 → equipment
+makePipe([8, 2.2, -4], [-7, 2.6, -5], 0xfbbf24, 0.05);
+
+// Duct (blue box, from AHU going up)
+const ductGeo = new THREE.BoxGeometry(1, 0.5, 3);
+const ductMat = new THREE.MeshStandardMaterial({ color: 0x1e5fa8, roughness: 0.5 });
+const duct = new THREE.Mesh(ductGeo, ductMat);
+duct.position.set(-4, 3.5, -5);
+duct.castShadow = true;
+scene.add(duct);
+
+// ============ INTERACTION ============
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+let hoveredMesh = null;
+let selectedKey = null;
+
+const tooltip = document.getElementById('tooltip');
+
+function onPointerMove(event) {
+  const rect = renderer.domElement.getBoundingClientRect();
+  mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const hits = raycaster.intersectObjects(selectableObjects, false);
+
+  if (hits.length > 0) {
+    const mesh = hits[0].object;
+    if (hoveredMesh !== mesh) {
+      if (hoveredMesh && hoveredMesh.userData.ring) {
+        hoveredMesh.userData.ring.material.opacity = 0;
+      }
+      hoveredMesh = mesh;
+      if (hoveredMesh.userData.ring) {
+        hoveredMesh.userData.ring.material.opacity = 0.4;
+      }
+      renderer.domElement.style.cursor = 'pointer';
+    }
+    const data = EQUIPMENT[mesh.userData.key];
+    tooltip.textContent = `${mesh.userData.key} — ${data.name}`;
+    tooltip.style.left = event.clientX + 'px';
+    tooltip.style.top = event.clientY + 'px';
+    tooltip.style.opacity = '1';
+  } else {
+    if (hoveredMesh && hoveredMesh.userData.ring) {
+      hoveredMesh.userData.ring.material.opacity = 0;
+    }
+    hoveredMesh = null;
+    renderer.domElement.style.cursor = 'grab';
+    tooltip.style.opacity = '0';
+  }
+}
+
+function onPointerDown(event) {
+  const rect = renderer.domElement.getBoundingClientRect();
+  mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const hits = raycaster.intersectObjects(selectableObjects, false);
+  if (hits.length > 0) {
+    selectEquipment(hits[0].object.userData.key);
+  }
+}
+
+renderer.domElement.addEventListener('pointermove', onPointerMove);
+renderer.domElement.addEventListener('pointerdown', onPointerDown);
+
+// ============ INSPECTOR UI ============
+const inspector = document.getElementById('inspector');
+const inspTag = document.getElementById('insp-tag');
+const inspTitle = document.getElementById('insp-title');
+const inspSubtitle = document.getElementById('insp-subtitle');
+const inspStatus = document.getElementById('insp-status');
+const tabOverview = document.getElementById('tab-overview');
+const tabPM = document.getElementById('tab-pm');
+const tabLOTO = document.getElementById('tab-loto');
+const tabTS = document.getElementById('tab-ts');
+
+document.getElementById('insp-close').addEventListener('click', () => {
+  inspector.classList.remove('open');
+  selectedKey = null;
+});
+
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('tab-' + t.dataset.tab).classList.add('active');
+  });
+});
+
+function selectEquipment(key) {
+  selectedKey = key;
+  const d = EQUIPMENT[key];
+  if (!d) return;
+
+  inspTag.textContent = key;
+  inspTitle.textContent = d.name;
+  inspSubtitle.textContent = d.subtitle;
+
+  // Status strip
+  inspStatus.innerHTML = '';
+  d.status.forEach(s => {
+    const cell = document.createElement('div');
+    cell.className = 'status-cell';
+    cell.innerHTML = `<div class="status-label">${s.label}</div><div class="status-value ${s.cls || ''}">${s.value}</div>`;
+    inspStatus.appendChild(cell);
+  });
+
+  // Overview
+  let html = `<p class="desc-block">${d.description}</p>`;
+  html += `<div class="section-heading">Specifications</div><div class="spec-grid">`;
+  Object.entries(d.spec).forEach(([k, v]) => {
+    html += `<div class="spec-item"><div class="spec-label">${k}</div><div class="spec-value">${v}</div></div>`;
+  });
+  html += `</div>`;
+  if (d.components && d.components.length) {
+    html += `<div class="section-heading">Components</div><div class="components-list">`;
+    d.components.forEach(c => {
+      html += `<div class="component-item"><strong>${c.tag}</strong>${c.label}</div>`;
+    });
+    html += `</div>`;
+  }
+  tabOverview.innerHTML = html;
+
+  // PM
+  renderPM(d);
+
+  // LOTO
+  renderLOTO(d);
+
+  // Troubleshooting
+  renderTS(d);
+
+  // Reset to overview tab
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active'));
+  document.querySelector('.tab[data-tab="overview"]').classList.add('active');
+  document.getElementById('tab-overview').classList.add('active');
+
+  inspector.classList.add('open');
+}
+
+function renderPM(d) {
+  if (!d.pm || Object.keys(d.pm).length === 0) {
+    tabPM.innerHTML = '<p class="desc-block">No PM procedures defined.</p>';
+    return;
+  }
+  const freqs = Object.keys(d.pm);
+  let html = `<div class="freq-tabs">`;
+  freqs.forEach((f, i) => {
+    html += `<button class="freq-tab ${i === 0 ? 'active' : ''}" data-freq="${f}">${f}</button>`;
+  });
+  html += `</div><div id="pm-steps"></div>`;
+  tabPM.innerHTML = html;
+
+  function renderFreq(freq) {
+    const steps = d.pm[freq];
+    let s = '';
+    steps.forEach((step, i) => {
+      s += `<div class="procedure-step" data-idx="${i}">
+        <div class="step-num">${String(i + 1).padStart(2, '0')}</div>
+        <div class="step-body"><strong>${step.title}</strong>${step.detail}</div>
+        <div class="step-check"></div>
+      </div>`;
+    });
+    document.getElementById('pm-steps').innerHTML = s;
+    document.querySelectorAll('#pm-steps .procedure-step').forEach(el => {
+      el.addEventListener('click', () => el.classList.toggle('done'));
+    });
+  }
+  renderFreq(freqs[0]);
+  tabPM.querySelectorAll('.freq-tab').forEach(ft => {
+    ft.addEventListener('click', () => {
+      tabPM.querySelectorAll('.freq-tab').forEach(x => x.classList.remove('active'));
+      ft.classList.add('active');
+      renderFreq(ft.dataset.freq);
+    });
+  });
+}
+
+function renderLOTO(d) {
+  if (!d.loto || !d.loto.length) {
+    tabLOTO.innerHTML = '<p class="desc-block">No LOTO required for this item.</p>';
+    return;
+  }
+  let html = `<div class="loto-warning"><strong>⚠ HAZARDOUS ENERGY PRESENT</strong>Complete this sequence in order. Each worker applies their own lock. Verify zero energy before starting work.</div>`;
+  d.loto.forEach((step, i) => {
+    html += `<div class="loto-step">
+      <div class="loto-num">${String(i + 1).padStart(2, '0')}</div>
+      <div class="loto-body"><strong>${step.title}</strong><p>${step.detail}</p>${step.code ? `<code>${step.code}</code>` : ''}</div>
+    </div>`;
+  });
+  tabLOTO.innerHTML = html;
+}
+
+function renderTS(d) {
+  if (!d.scenarios || !d.scenarios.length) {
+    tabTS.innerHTML = '<p class="desc-block">No troubleshooting scenarios defined for this equipment yet.</p>';
+    return;
+  }
+  let html = `<div class="scenario-picker">`;
+  d.scenarios.forEach(s => {
+    const dLabel = { easy: 'Level 1 · Entry', med: 'Level 2 · Journeyman', hard: 'Level 3 · Senior' };
+    html += `<button class="scenario-card" data-sid="${s.id}">
+      <div class="scenario-diff ${s.difficulty}">${dLabel[s.difficulty]}</div>
+      <div class="scenario-title">${s.title}</div>
+      <div class="scenario-desc">${s.brief}</div>
+    </button>`;
+  });
+  html += `</div><div class="ts-runner" id="ts-runner"></div>`;
+  tabTS.innerHTML = html;
+
+  tabTS.querySelectorAll('.scenario-card').forEach(sc => {
+    sc.addEventListener('click', () => startScenario(d, sc.dataset.sid));
+  });
+}
+
+// ============ TROUBLESHOOTING RUNNER ============
+let tsState = null;
+
+function startScenario(d, sid) {
+  const s = d.scenarios.find(x => x.id === sid);
+  if (!s) return;
+  tsState = { scenario: s, stepIdx: 0, score: 0 };
+  tabTS.querySelector('.scenario-picker').style.display = 'none';
+  tabTS.querySelector('#ts-runner').classList.add('active');
+  renderTSStep();
+}
+
+function renderTSStep() {
+  const runner = document.getElementById('ts-runner');
+  const { scenario, stepIdx, score } = tsState;
+
+  if (stepIdx >= scenario.steps.length) {
+    renderTSComplete();
+    return;
+  }
+
+  const step = scenario.steps[stepIdx];
+  let html = `
+    <div class="ts-header">
+      <div class="ts-alarm">● SCENARIO ACTIVE</div>
+      <div class="ts-scenario-title">${scenario.title}</div>
+      <div class="ts-scenario-brief">${scenario.brief}</div>
+    </div>
+    <div class="ts-score-bar">
+      <div><span class="lbl">STEP</span> <span class="val">${stepIdx + 1}/${scenario.steps.length}</span></div>
+      <div><span class="lbl">SCORE</span> <span class="val">${score}</span></div>
+    </div>
+    <div class="ts-prompt">${step.prompt}</div>
+  `;
+  step.choices.forEach((c, i) => {
+    html += `<button class="ts-choice" data-idx="${i}">${c.text}</button>`;
+  });
+  html += `<div id="ts-feedback"></div>`;
+  runner.innerHTML = html;
+
+  runner.querySelectorAll('.ts-choice').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const choice = step.choices[parseInt(btn.dataset.idx)];
+      tsState.score += choice.delta;
+      const fbEl = document.getElementById('ts-feedback');
+      const cls = choice.result === 'good' ? 'good' : choice.result === 'bad' ? 'bad' : 'teaching';
+      const label = choice.result === 'good' ? '✓ CORRECT' : choice.result === 'bad' ? '✗ INCORRECT' : '◐ TEACHING MOMENT';
+      fbEl.innerHTML = `<div class="ts-feedback ${cls}"><strong>${label} · ${choice.delta >= 0 ? '+' : ''}${choice.delta} pts</strong>${choice.feedback}</div>
+        <button class="ctrl-btn primary" style="margin-top:14px" id="ts-next">Continue →</button>`;
+      runner.querySelectorAll('.ts-choice').forEach(b => { b.disabled = true; b.style.opacity = 0.4; });
+      document.getElementById('ts-next').addEventListener('click', () => {
+        tsState.stepIdx++;
+        renderTSStep();
+      });
+    });
+  });
+}
+
+function renderTSComplete() {
+  const runner = document.getElementById('ts-runner');
+  const { scenario, score } = tsState;
+  const max = scenario.maxScore;
+  const pct = Math.max(0, Math.round((score / max) * 100));
+  const pass = pct >= 70;
+  runner.innerHTML = `
+    <div class="ts-complete">
+      <div style="font-family:var(--mono); font-size:10px; letter-spacing:2px; color:var(--text-dim)">SCENARIO COMPLETE</div>
+      <div class="ts-complete-score ${pass ? 'pass' : 'fail'}">${score} / ${max}</div>
+      <div style="font-size:14px; color:var(--text-dim); margin-bottom:8px">${pct}% — ${pass ? 'PASS' : 'REVIEW REQUIRED'}</div>
+      <div style="font-size:12px; color:var(--text-dimmer); line-height:1.5; max-width:340px; margin:0 auto">
+        ${pass
+          ? 'Good work. You made sound decisions throughout. Your work qualifies for this equipment.'
+          : 'Review the teaching moments above. Retake when ready. In production, this would notify the training supervisor.'}
+      </div>
+      <button class="ctrl-btn primary" style="margin-top:24px" id="ts-restart">⟲ Try Another Scenario</button>
+    </div>
+  `;
+  document.getElementById('ts-restart').addEventListener('click', () => {
+    tabTS.querySelector('.scenario-picker').style.display = 'grid';
+    tabTS.querySelector('#ts-runner').classList.remove('active');
+    tabTS.querySelector('#ts-runner').innerHTML = '';
+    tsState = null;
+  });
+}
+
+// ============ VIEW CONTROLS ============
+document.getElementById('btn-reset').addEventListener('click', () => {
+  animateCamera([14, 12, 14], [0, 1.5, 0]);
+});
+document.getElementById('btn-top').addEventListener('click', () => {
+  animateCamera([0, 26, 0.01], [0, 0, 0]);
+});
+document.getElementById('btn-walk').addEventListener('click', () => {
+  animateCamera([9, 1.7, 8], [0, 1.5, 0]);
+});
+
+function animateCamera(toPos, toTarget) {
+  const startPos = camera.position.clone();
+  const startTarget = controls.target.clone();
+  const endPos = new THREE.Vector3(...toPos);
+  const endTarget = new THREE.Vector3(...toTarget);
+  let t = 0;
+  const dur = 900;
+  const start = performance.now();
+  function tween() {
+    const now = performance.now();
+    t = Math.min(1, (now - start) / dur);
+    const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+    camera.position.lerpVectors(startPos, endPos, eased);
+    controls.target.lerpVectors(startTarget, endTarget, eased);
+    controls.update();
+    if (t < 1) requestAnimationFrame(tween);
+  }
+  tween();
+}
+
+// ============ FAULT SIMULATION ============
+let faultActive = false;
+document.getElementById('btn-fault').addEventListener('click', () => {
+  faultActive = !faultActive;
+  const btn = document.getElementById('btn-fault');
+  btn.textContent = faultActive ? '● FAULT ACTIVE' : '⚠ Simulate Fault';
+  btn.style.background = faultActive ? 'rgba(239, 68, 68, 0.25)' : '';
+  btn.style.borderColor = faultActive ? 'var(--danger)' : '';
+  btn.style.color = faultActive ? 'var(--danger-glow)' : '';
+
+  // Find AHU-1 status light and set to red
+  const ahu = equipmentMeshes.find(e => e.userData.key === 'AHU-1');
+  if (ahu) {
+    ahu.traverse(o => {
+      if (o.userData && o.userData.isStatusLight) {
+        o.material.color.setHex(faultActive ? 0xef4444 : 0x10b981);
+        o.material.emissive.setHex(faultActive ? 0xef4444 : 0x10b981);
+      }
+    });
+  }
+
+  // Auto-open AHU-1 if fault active
+  if (faultActive) {
+    // Update status to show fault
+    const ahu = EQUIPMENT['AHU-1'];
+    ahu.status = [
+      { label: 'State', value: 'FAULT', cls: 'err' },
+      { label: 'SA Temp', value: '68.3°F', cls: 'err' },
+      { label: 'Filter ΔP', value: '0.82"wc', cls: 'warn' },
+      { label: 'Fan SPD', value: '85%', cls: 'warn' },
+    ];
+    selectEquipment('AHU-1');
+    // Switch to troubleshoot tab
+    setTimeout(() => {
+      document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active'));
+      document.querySelector('.tab[data-tab="ts"]').classList.add('active');
+      document.getElementById('tab-ts').classList.add('active');
+    }, 400);
+  } else {
+    EQUIPMENT['AHU-1'].status = [
+      { label: 'State', value: 'RUN', cls: 'ok' },
+      { label: 'SA Temp', value: '55.2°F', cls: 'ok' },
+      { label: 'Filter ΔP', value: '0.82"wc', cls: 'warn' },
+      { label: 'Fan SPD', value: '72%', cls: 'ok' },
+    ];
+  }
+});
+
+// ============ ANIMATION LOOP ============
+const clock = new THREE.Clock();
+let faultPulse = 0;
+
+function animate() {
+  const dt = clock.getDelta();
+  const t = clock.getElapsedTime();
+  controls.update();
+
+  // Pulse fault lights
+  if (faultActive) {
+    faultPulse = (Math.sin(t * 6) + 1) / 2;
+    equipmentMeshes.forEach(e => {
+      if (e.userData.key === 'AHU-1') {
+        e.traverse(o => {
+          if (o.userData && o.userData.isStatusLight) {
+            o.material.emissiveIntensity = 0.5 + faultPulse * 2;
+          }
+        });
+      }
+    });
+  }
+
+  // Gentle breathing on highlight rings
+  equipmentMeshes.forEach(e => {
+    e.traverse(o => {
+      if (o.userData && o.userData.ring && o.userData.ring.material.opacity > 0.1) {
+        o.userData.ring.material.opacity = 0.3 + Math.sin(t * 4) * 0.15;
+      }
+    });
+  });
+
+  renderer.render(scene, camera);
+}
+renderer.setAnimationLoop(animate);
+
+// ============ RESIZE ============
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ============ INIT ============
+document.getElementById('inst-start').addEventListener('click', () => {
+  document.getElementById('instructions').classList.add('hidden');
+});
+
+setTimeout(() => {
+  document.getElementById('loader').classList.add('fade');
+  setTimeout(() => document.getElementById('loader').style.display = 'none', 600);
+}, 800);
+
+// ============ KEYBOARD SHORTCUTS ============
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    inspector.classList.remove('open');
+  } else if (e.key === '1') {
+    document.getElementById('btn-reset').click();
+  } else if (e.key === '2') {
+    document.getElementById('btn-top').click();
+  } else if (e.key === '3') {
+    document.getElementById('btn-walk').click();
+  }
+});
+</script>
+</body>
+</html>
